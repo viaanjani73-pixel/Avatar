@@ -1,18 +1,23 @@
-name: Get Activation File
+name: Build-APK
 on: workflow_dispatch
 jobs:
-  activation:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate Manual Activation File
-        run: |
-          echo "Membuat file manual..."
-          touch manual.alf
-          # File ini hanya sebagai pancingan untuk melihat environment
-      
-      - name: Request License File
-        uses: game-ci/unity-request-activation-file@v2
-        # Kita tetap coba v2 tapi dengan bypass
+      - name: Build
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Game-APK
+          path: build/Android
