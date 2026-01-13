@@ -4,10 +4,15 @@ jobs:
   activation:
     runs-on: ubuntu-latest
     steps:
-      - name: Request activation file
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate Manual Activation File
+        run: |
+          echo "Membuat file manual..."
+          touch manual.alf
+          # File ini hanya sebagai pancingan untuk melihat environment
+      
+      - name: Request License File
         uses: game-ci/unity-request-activation-file@v2
-      - name: Upload activation file
-        uses: actions/upload-artifact@v4
-        with:
-          name: manual-activation-file
-          path: ./*.alf
+        # Kita tetap coba v2 tapi dengan bypass
