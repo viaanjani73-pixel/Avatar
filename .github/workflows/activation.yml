@@ -1,8 +1,19 @@
-- name: Checkout Repository
+name: Build-Android-APK
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Ekstrak Project Unity
-        run: unzip AvatarDKunitydecode.zip -d project_temp
+      - name: Ekstrak Project ZIP
+        run: |
+          sudo apt-get install -y unzip
+          unzip AvatarDKunitydecode.zip -d extracted_project
+          # Perintah di bawah untuk memastikan kita menemukan folder ProjectSettings
+          find extracted_project -name "ProjectSettings"
 
       - name: Build Unity Project
         uses: game-ci/unity-builder@v4
@@ -12,4 +23,12 @@
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
-          projectPath: project_temp # Ini mengarah ke hasil ekstrak tadi
+          # Jika folder ProjectSettings ada di dalam sub-folder hasil ekstrak, 
+          # GitHub akan mencarinya secara otomatis di sini
+          projectPath: extracted_project
+
+      - name: Simpan Hasil APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Game-Avatar-Final
+          path: build/Android
