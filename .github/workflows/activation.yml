@@ -1,8 +1,23 @@
-- name: Build Unity Project
+name: Build-Android-APK
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Unity Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }} # Ini akan menggunakan kode SC-R8UX tadi
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
+
+      - name: Simpan Hasil APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Game-Avatar-APK
+          path: build/Android
