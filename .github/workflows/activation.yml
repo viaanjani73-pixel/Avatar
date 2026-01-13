@@ -1,4 +1,21 @@
-- name: Build-Project
+name: Build-APK
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          clean: false
+
+      - name: Extract-Zip
+        run: |
+          sudo apt-get install -y unzip
+          unzip AvatarDKunitydecode.zip -d project_temp
+
+      - name: Build-Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -6,7 +23,14 @@
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
+          # Mengarah ke folder ExportedProject sesuai info Anda
           projectPath: project_temp/AvatarDKunitydecode/ExportedProject
-          allowDirtyBuild: true
-          # Tambahkan baris di bawah ini untuk menggunakan versi yang tersedia di server
+          # Menggunakan versi Unity 2022 yang stabil di server
           unityVersion: 2022.3.15f1
+          allowDirtyBuild: true
+
+      - name: Upload-APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hasil-Game-Avatar
+          path: build/Android
