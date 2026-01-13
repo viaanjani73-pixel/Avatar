@@ -1,4 +1,19 @@
-- name: Build Unity Project
+name: Build-APK
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract-Zip
+        run: |
+          sudo apt-get install -y unzip
+          unzip AvatarDKunitydecode.zip -d project_temp
+
+      - name: Build-Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -6,5 +21,10 @@
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
-          # Perubahan di sini: Mencari folder yang berisi ProjectSettings secara otomatis
-          projectPath: extracted_project/AvatarDKunitydecode
+          projectPath: project_temp/AvatarDKunitydecode
+
+      - name: Upload-APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hasil-Game
+          path: build/Android
