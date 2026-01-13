@@ -5,6 +5,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Free Disk Space (Pembersihan)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -23,9 +31,7 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
-          # Mengarah ke folder ExportedProject sesuai info Anda
           projectPath: project_temp/AvatarDKunitydecode/ExportedProject
-          # Menggunakan versi Unity 2022 yang stabil di server
           unityVersion: 2022.3.15f1
           allowDirtyBuild: true
 
