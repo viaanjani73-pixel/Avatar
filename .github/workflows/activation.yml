@@ -7,15 +7,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          clean: false
 
       - name: Extract-Zip
         run: |
           sudo apt-get install -y unzip
           unzip AvatarDKunitydecode.zip -d project_temp
-          # Mencari di mana folder ProjectSettings berada dan menyimpannya ke variabel
-          UNITY_PATH=$(find project_temp -name ProjectSettings -printf '%h')
-          echo "PROJECT_PATH=$UNITY_PATH" >> $GITHUB_ENV
-          echo "Folder ditemukan di: $UNITY_PATH"
+          # Menampilkan struktur folder untuk memastikan (hanya untuk log)
+          ls -R project_temp/AvatarDKunitydecode/ExportedProject
 
       - name: Build-Project
         uses: game-ci/unity-builder@v4
@@ -25,8 +25,9 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
-          # Menggunakan hasil pencarian otomatis tadi
-          projectPath: ${{ env.PROJECT_PATH }}
+          # Jalur folder disesuaikan dengan info Anda
+          projectPath: project_temp/AvatarDKunitydecode/ExportedProject
+          allowDirtyBuild: true
 
       - name: Upload-APK
         uses: actions/upload-artifact@v4
