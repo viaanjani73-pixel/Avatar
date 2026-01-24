@@ -1,4 +1,4 @@
-name: Build-APK-Final-Fix
+name: Build-APK-Super-Fix
 on: workflow_dispatch
 
 jobs:
@@ -7,33 +7,34 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          clean: false
 
       - name: Extract-Zip
         run: |
           sudo apt-get install -y unzip
           unzip AvatarDKunitydecode.zip -d project_temp
 
-      - name: Force-Clean-Project
+      - name: Fix-Layar-dan-UI
         run: |
-          # 1. Hapus komponen GUI Layer yang merusak tampilan kamera
-          find project_temp -name "*.unity" -exec sed -i '/GUILayer:/d' {} +
-          find project_temp -name "*.unity" -exec sed -i '/m_IsGuiLayer:/d' {} +
+          PROJECT_ROOT="project_temp/AvatarDKunitydecode/ExportedProject"
           
-          # 2. Paksa Android menggunakan resolusi penuh (Native Aspect Ratio)
-          SETTINGS_FILE=$(find project_temp -name "ProjectSettings.asset")
+          # 1. Hapus paksa komponen GUILayer yang merusak rasio layar
+          find "$PROJECT_ROOT" -name "*.unity" -exec sed -i '/GUILayer:/d' {} +
+          find "$PROJECT_ROOT" -name "*.unity" -exec sed -i '/m_IsGuiLayer:/d' {} +
+          
+          # 2. Paksa Android menggunakan resolusi penuh (Layar Penuh)
+          SETTINGS_FILE=$(find "$PROJECT_ROOT" -name "ProjectSettings.asset")
           sed -i 's/androidAspectRatio: .*/androidAspectRatio: 1/g' "$SETTINGS_FILE"
           sed -i 's/androidRenderOutsideSafeArea: .*/androidRenderOutsideSafeArea: 1/g' "$SETTINGS_FILE"
-          sed -i 's/androidUseCustomAspectRatio: .*/androidUseCustomAspectRatio: 0/g' "$SETTINGS_FILE"
+          
+          # 3. Hapus folder sisa build lama (Force Clean)
+          rm -rf "$PROJECT_ROOT/Library"
+          rm -rf "$PROJECT_ROOT/Temp"
 
       - name: Build-Project
         uses: game-ci/unity-builder@v4
         env:
+          # PAKSA OFFLINE: Jangan gunakan Email/Password agar tidak dicek status Pro Online-nya
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          # Pastikan UNITY_EMAIL dan PASSWORD tetap ada tapi SERIAL sudah dihapus di Secrets
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: Android
           projectPath: project_temp/AvatarDKunitydecode/ExportedProject
@@ -43,5 +44,5 @@ jobs:
       - name: Upload-APK
         uses: actions/upload-artifact@v4
         with:
-          name: Game-Avatar-Final
+          name: Game-Avatar-Final-NoTrial
           path: build/Android
