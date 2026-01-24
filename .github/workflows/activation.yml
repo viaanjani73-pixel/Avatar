@@ -1,16 +1,10 @@
-name: Build-APK
+name: Build-APK-Final-Fix
 on: workflow_dispatch
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Free Disk Space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -21,18 +15,25 @@ jobs:
           sudo apt-get install -y unzip
           unzip AvatarDKunitydecode.zip -d project_temp
 
-      # LANGKAH BARU: Memperbaiki layar dengan menghapus komponen GUI Layer yang rusak
-      - name: Fix-Camera-Resolution
+      - name: Force-Clean-Project
         run: |
+          # 1. Hapus komponen GUI Layer yang merusak tampilan kamera
           find project_temp -name "*.unity" -exec sed -i '/GUILayer:/d' {} +
           find project_temp -name "*.unity" -exec sed -i '/m_IsGuiLayer:/d' {} +
+          
+          # 2. Paksa Android menggunakan resolusi penuh (Native Aspect Ratio)
+          SETTINGS_FILE=$(find project_temp -name "ProjectSettings.asset")
+          sed -i 's/androidAspectRatio: .*/androidAspectRatio: 1/g' "$SETTINGS_FILE"
+          sed -i 's/androidRenderOutsideSafeArea: .*/androidRenderOutsideSafeArea: 1/g' "$SETTINGS_FILE"
+          sed -i 's/androidUseCustomAspectRatio: .*/androidUseCustomAspectRatio: 0/g' "$SETTINGS_FILE"
 
       - name: Build-Project
         uses: game-ci/unity-builder@v4
         env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          # Pastikan UNITY_EMAIL dan PASSWORD tetap ada tapi SERIAL sudah dihapus di Secrets
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: Android
           projectPath: project_temp/AvatarDKunitydecode/ExportedProject
@@ -42,5 +43,5 @@ jobs:
       - name: Upload-APK
         uses: actions/upload-artifact@v4
         with:
-          name: Hasil-Game-Avatar-Fixed
+          name: Game-Avatar-Final
           path: build/Android
