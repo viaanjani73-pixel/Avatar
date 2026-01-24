@@ -1,4 +1,4 @@
-name: Build-APK-Super-Fix
+name: Build-APK-Final
 on: workflow_dispatch
 
 jobs:
@@ -13,28 +13,22 @@ jobs:
           sudo apt-get install -y unzip
           unzip AvatarDKunitydecode.zip -d project_temp
 
-      - name: Fix-Layar-dan-UI
+      - name: Fix-Layar
         run: |
           PROJECT_ROOT="project_temp/AvatarDKunitydecode/ExportedProject"
-          
-          # 1. Hapus paksa komponen GUILayer yang merusak rasio layar
+          # Hapus komponen kamera lama agar layar otomatis penuh
           find "$PROJECT_ROOT" -name "*.unity" -exec sed -i '/GUILayer:/d' {} +
           find "$PROJECT_ROOT" -name "*.unity" -exec sed -i '/m_IsGuiLayer:/d' {} +
-          
-          # 2. Paksa Android menggunakan resolusi penuh (Layar Penuh)
+          # Paksa Android pakai resolusi Full Screen
           SETTINGS_FILE=$(find "$PROJECT_ROOT" -name "ProjectSettings.asset")
           sed -i 's/androidAspectRatio: .*/androidAspectRatio: 1/g' "$SETTINGS_FILE"
-          sed -i 's/androidRenderOutsideSafeArea: .*/androidRenderOutsideSafeArea: 1/g' "$SETTINGS_FILE"
-          
-          # 3. Hapus folder sisa build lama (Force Clean)
-          rm -rf "$PROJECT_ROOT/Library"
-          rm -rf "$PROJECT_ROOT/Temp"
 
       - name: Build-Project
         uses: game-ci/unity-builder@v4
         env:
-          # PAKSA OFFLINE: Jangan gunakan Email/Password agar tidak dicek status Pro Online-nya
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: Android
           projectPath: project_temp/AvatarDKunitydecode/ExportedProject
@@ -44,5 +38,5 @@ jobs:
       - name: Upload-APK
         uses: actions/upload-artifact@v4
         with:
-          name: Game-Avatar-Final-NoTrial
+          name: APK-Fixed
           path: build/Android
